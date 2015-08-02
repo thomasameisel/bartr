@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.location.Location;
@@ -35,11 +36,15 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 
-public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnTouchListener {
-    public static SharedPreferences sSharedPreferences;
+public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnTouchListener, BasicDialog.OnBasicDialogClick {
+    static SharedPreferences sSharedPreferences;
 
-    private boolean mIsFirstClick, mIsInfoFullScreen;
-    private int mYDelta, mInitialY;
+    static final String TASK_INFO = "taskInfo";
+
+    private boolean mIsFirstClick, mIsInfoShowing;
+    private int mYDelta;
+    private Task mCurTask;
+    private Marker mCurMarker;
     private ArrayList<Pair<Marker, Task>> mTasks;
 
     @Override
@@ -48,13 +53,22 @@ public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_tasks);
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        findViewById(R.id.button_accept_task_toolbar).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                BasicDialog dialog = BasicDialog.newInstance(getString(R.string.accept_task_question),
+                        getString(R.string.accept_task_message));
+                dialog.show(getSupportFragmentManager(), "dialog");
+            }
+        });
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.fragment_google_map);
         mapFragment.getMapAsync(this);
-        findViewById(R.id.scroll_view_view_task_info).setOnTouchListener(this);
+        findViewById(R.id.grid_layout_view_task_info).setVisibility(View.GONE);
+        findViewById(R.id.grid_layout_view_task_info).setOnTouchListener(this);
 
         mIsFirstClick = true;
-        mIsInfoFullScreen = false;
+        mIsInfoShowing = false;
         mTasks = new ArrayList<>();
     }
 
@@ -72,13 +86,8 @@ public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCa
 
     @Override
     public void onBackPressed() {
-        if (mIsInfoFullScreen) {
-            Animator animator = createTopMarginAnimator(findViewById(R.id.scroll_view_view_task_info), mInitialY);
-            animator.setInterpolator(new BounceInterpolator());
-            animator.start();
-            mIsInfoFullScreen = false;
-            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-            findViewById(R.id.button_accept_task_toolbar).setVisibility(View.GONE);
+        if (mIsInfoShowing) {
+            removeInfoView(findViewById(R.id.grid_layout_view_task_info));
         } else {
             super.onBackPressed();
         }
@@ -95,19 +104,30 @@ public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCa
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(curLatLng, 12));
 
         initializeTasksFromSharedPref(map, sSharedPreferences.getAll());
+        final View infoView = findViewById(R.id.grid_layout_view_task_info);
         map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(final Marker marker) {
                 marker.showInfoWindow();
+                mCurMarker = marker;
                 final Task task = getTaskByMarker(marker);
                 if (task != null) {
+                    mCurTask = task;
                     changeTaskViewed(task);
                     if (mIsFirstClick) {
-                        createInitialBounceAnimation();
+                        createInitialBounceAnimation(infoView);
                         mIsFirstClick = false;
                     }
                 }
                 return true;
+            }
+        });
+        map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                if (mCurTask != null) {
+                    removeInfoView(infoView);
+                }
             }
         });
     }
@@ -115,76 +135,121 @@ public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCa
     @Override
     public boolean onTouch(final View view, final MotionEvent motionEvent) {
         final int Y = (int) motionEvent.getRawY();
-        if (!mIsInfoFullScreen) {
-            final FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) view.getLayoutParams();
-            switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
-                case MotionEvent.ACTION_DOWN:
-                    FrameLayout.LayoutParams lParams = (FrameLayout.LayoutParams) view.getLayoutParams();
-                    mYDelta = Y - lParams.topMargin;
-                    break;
-                case MotionEvent.ACTION_UP:
-                    if (layoutParams.topMargin < 0-dpToPx(150)) {
-                        Animator animator = createTopMarginAnimator(view, 0-dpToPx(150));
-                        animator.setInterpolator(new BounceInterpolator());
-                        animator.start();
-                    } else {
-                        Animator animator = createTopMarginAnimator(view, mInitialY);
-                        animator.setInterpolator(new BounceInterpolator());
-                        animator.start();
-                    }
-                    break;
-                case MotionEvent.ACTION_POINTER_DOWN:
-                    break;
-                case MotionEvent.ACTION_POINTER_UP:
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    layoutParams.topMargin = Y - mYDelta;
-                    view.setLayoutParams(layoutParams);
-                    if (layoutParams.topMargin < 0-dpToPx(370)) {
-                        makeInfoFullScreen(view, 0-dpToPx(386));
-                    }
-                    break;
-            }
-            view.invalidate();
+        final FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) view.getLayoutParams();
+        switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
+            case MotionEvent.ACTION_DOWN:
+                FrameLayout.LayoutParams lParams = (FrameLayout.LayoutParams) view.getLayoutParams();
+                mYDelta = Y - lParams.topMargin;
+                break;
+            case MotionEvent.ACTION_UP:
+                if (layoutParams.topMargin < 0) {
+                    mIsInfoShowing = true;
+                    Animator animator = createTopMarginAnimator(view, 0);
+                    animator.setInterpolator(new BounceInterpolator());
+                    animator.start();
+                } else {
+                    mIsInfoShowing = false;
+                    removeInfoView(view);
+                }
+                break;
+            case MotionEvent.ACTION_POINTER_DOWN:
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+                break;
+            case MotionEvent.ACTION_MOVE:
+                layoutParams.topMargin = Y - mYDelta;
+                view.setLayoutParams(layoutParams);
+                break;
         }
+        view.invalidate();
         return true;
     }
 
-    private void makeInfoFullScreen(final View infoView, final int fullScreen) {
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        findViewById(R.id.button_accept_task_toolbar).setVisibility(View.VISIBLE);
-        final FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) infoView.getLayoutParams();
-        layoutParams.topMargin = fullScreen;
-        mIsInfoFullScreen = true;
+    @Override
+    public void onPositiveClick() {
+        // go to RequestTaskActivity
+        final Intent requestIntent = new Intent(this, RequestTaskActivity.class);
+        requestIntent.putExtra(TASK_INFO, mCurTask.getFieldsWithId());
+        startActivity(requestIntent);
     }
 
-    private void changeTaskViewed(final Task task) {
-        ((TextView)findViewById(R.id.text_view_item_needed)).setText(task.mItem);
-        ((TextView)findViewById(R.id.text_view_max_price)).setText(String.format("$%.2f", centsToDollars(task.mMaxPrice)));
-        ((TextView)findViewById(R.id.text_view_bounty)).setText(String.format("$%.2f", centsToDollars(task.mBounty)));
-        ((TextView)findViewById(R.id.text_view_notes)).setText(task.mNotes);
+    @Override
+    public void onNegativeClick() {
+        // do nothing
     }
 
-    private void createInitialBounceAnimation() {
-        final View infoView = findViewById(R.id.scroll_view_view_task_info);
-        final Point size = new Point();
-        getWindowManager().getDefaultDisplay().getSize(size);
-        final Animator downAnimator = createTranslationYAnimator(infoView, size.y-dpToPx(300), size.y-dpToPx(150));
-        downAnimator.setInterpolator(new BounceInterpolator());
-        final AnimatorSet animatorSet = new AnimatorSet();
-        animatorSet.playSequentially(createTranslationYAnimator(infoView, size.y, size.y - dpToPx(300)),
-                downAnimator);
-        animatorSet.addListener(new Animator.AnimatorListener() {
+    public static long dollarsToCents(final double dollars) {
+        return (long) (dollars * 100);
+    }
+
+    public static double centsToDollars(final long cents) {
+        return (double) cents / 100;
+    }
+
+    private void removeInfoView(final View infoView) {
+        final Animator animator = createTopMarginAnimator(infoView, dpToPx(500));
+        animator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
-                infoView.setVisibility(View.VISIBLE);
+                mCurMarker.hideInfoWindow();
+                mIsInfoShowing = false;
+                mIsFirstClick = true;
+                getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                findViewById(R.id.button_accept_task_toolbar).setVisibility(View.GONE);
             }
 
             @Override
             public void onAnimationEnd(Animator animation) {
-                FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams)
-                        findViewById(R.id.scroll_view_view_task_info).getLayoutParams();
-                mInitialY = layoutParams.topMargin;
+                infoView.setVisibility(View.GONE);
+                FrameLayout.LayoutParams layoutParams =
+                        (FrameLayout.LayoutParams) infoView.getLayoutParams();
+                layoutParams.setMargins(0, 0, 0, 0);
+                infoView.setLayoutParams(layoutParams);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+            }
+        });
+        animator.start();
+    }
+
+    private void changeTaskViewed(final Task task) {
+        ((TextView)findViewById(R.id.text_view_item_needed))
+                .setText(task.mItem);
+        ((TextView)findViewById(R.id.text_view_max_price))
+                .setText(String.format("$%.2f", centsToDollars(task.mMaxPrice)));
+        ((TextView)findViewById(R.id.text_view_bounty))
+                .setText(String.format("$%.2f", centsToDollars(task.mBounty)));
+        ((TextView)findViewById(R.id.text_view_notes))
+                .setText(task.mNotes);
+    }
+
+    private void createInitialBounceAnimation(final View infoView) {
+        final Point size = new Point();
+        getWindowManager().getDefaultDisplay().getSize(size);
+        final Animator downAnimator =
+                createTranslationYAnimator(infoView, size.y - dpToPx(300), size.y - dpToPx(250));
+        downAnimator.setInterpolator(new BounceInterpolator());
+        final AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playSequentially(
+                createTranslationYAnimator(infoView, size.y, size.y - dpToPx(300)),
+                downAnimator);
+        animatorSet.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                mIsInfoShowing = true;
+                infoView.setVisibility(View.VISIBLE);
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                findViewById(R.id.button_accept_task_toolbar).setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
             }
 
             @Override
@@ -241,14 +306,6 @@ public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCa
         //final double longitude = Double.parseDouble(latlong[1]);
         final double longitude = -89.37296024417279;
         return new LatLng(latitude, longitude);
-    }
-
-    private long dollarsToCents(final double dollars) {
-        return (long) (dollars * 100);
-    }
-
-    private double centsToDollars(final long cents) {
-        return (double) cents / 100;
     }
 
     private double getRandomOffset() {

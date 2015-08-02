@@ -2,10 +2,19 @@
     <string name="app_name">Bartr</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_view_tasks">Map</string>
-
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="preference_file_key">com.tarian.bartr.tasks</string>
     <string name="accept_task">Accept Task</string>
+    <string name="accept_task_question">Are you sure you want to accept this task?</string>
+    <string name="accept_task_message">You will have 1 hour to complete it.</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="item_label">Item:&#160;</string>
+    <string name="max_price_label">Max price:&#160;</string>
+    <string name="bounty_label">Bounty:&#160;</string>
+    <string name="notes_label">Notes:&#160;</string>
+    <string name="title_activity_request_task">RequestTaskActivity</string>
+    <string name="drop_off">Drop Off</string>
+    <string name="send_receipt">Send Receipt</string>
+    <string name="cancel_task_question">Are you sure you want to cancel this task?</string>
+    <string name="price">Price:&#160;$</string>
 </resources>

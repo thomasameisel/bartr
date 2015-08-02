@@ -37,6 +37,16 @@ public class Task {
         return fields;
     }
 
+    public String[] getFieldsWithId() {
+        final String[] fieldsWithoutId = getFields();
+        final String[] fields = new String[6];
+        fields[0] = mId.toString();
+        for (int i = 0; i < fieldsWithoutId.length; ++i) {
+            fields[i+1] = fieldsWithoutId[i];
+        }
+        return fields;
+    }
+
     private String latLngToString(final LatLng location) {
         final String locationString =
                 Double.toString(location.latitude) +

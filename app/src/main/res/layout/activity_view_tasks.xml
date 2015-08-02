@@ -1,5 +1,87 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:id="@+id/fragment"
-    android:name="com.tarian.bartr.ViewTasksActivityFragment"
-    tools:layout="@layout/fragment_view_tasks" android:layout_width="match_parent"
-    android:layout_height="match_parent" />
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.tarian.bartr.ViewTasksActivity"
+    android:background="@color/background_material_light">
+
+    <include layout="@layout/toolbar"/>
+    <fragment
+        android:id="@+id/fragment_google_map"
+        class="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:name="com.google.android.gms.maps.SupportMapFragment" />
+    <ScrollView
+        android:id="@+id/scroll_view_view_task_info"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:visibility="gone"
+        android:background="@color/background_material_light">
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:columnCount="2">
+
+            <TextView
+                android:id="@+id/text_view_item_needed_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Item needed: "
+                android:textColor="@color/secondary_text_default_material_light"
+                android:textSize="26sp"/>
+            <TextView
+                android:id="@+id/text_view_item_needed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/primary_text_default_material_light"
+                android:textSize="26sp"/>
+            <TextView
+                android:id="@+id/text_view_max_price_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Max price: "
+                android:textColor="@color/secondary_text_default_material_light"
+                android:textSize="26sp"
+                android:paddingTop="10dp"/>
+            <TextView
+                android:id="@+id/text_view_max_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/primary_text_default_material_light"
+                android:textSize="26sp"/>
+            <TextView
+                android:id="@+id/text_view_bounty_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bounty: "
+                android:textColor="@color/secondary_text_default_material_light"
+                android:textSize="26sp"
+                android:paddingTop="10dp"/>
+            <TextView
+                android:id="@+id/text_view_bounty"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/primary_text_default_material_light"
+                android:textSize="26sp"/>
+            <TextView
+                android:id="@+id/text_view_notes_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Notes: "
+                android:textColor="@color/secondary_text_default_material_light"
+                android:textSize="26sp"
+                android:paddingTop="10dp"/>
+            <TextView
+                android:id="@+id/text_view_notes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/primary_text_default_material_light"
+                android:textSize="26sp"/>
+        </GridLayout>
+    </ScrollView>
+</FrameLayout>

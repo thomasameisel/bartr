@@ -41,7 +41,8 @@
                     android:text="@string/accept_task"
                     android:textColor="@color/white"
                     android:textAllCaps="true"
-                    android:visibility="gone"/>
+                    android:visibility="gone"
+                    android:onClick="actionButtonClicked"/>
             </RelativeLayout>
         </android.support.v7.widget.Toolbar>
     </android.support.design.widget.AppBarLayout>

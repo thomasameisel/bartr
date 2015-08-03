@@ -19,6 +19,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -40,7 +41,7 @@ import java.util.UUID;
 import haibison.android.lockpattern.LockPatternActivity;
 
 public class ViewTasksActivity extends AppCompatActivity
-        implements OnMapReadyCallback, View.OnTouchListener, AddTaskFragment.OnAddTaskListener {
+        implements OnMapReadyCallback, View.OnTouchListener {
 
     static final String TASK_INFO = "taskInfo";
     static final String PATTERN = "pattern";
@@ -64,23 +65,12 @@ public class ViewTasksActivity extends AppCompatActivity
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         findViewById(R.id.button_action_toolbar).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(final View v) {
-                BasicDialog dialog = BasicDialog.newInstance(getString(R.string.accept_task_question),
-                        getString(R.string.accept_task_message), true);
-                dialog.setOnClickListener(new BasicDialog.OnBasicDialogClick() {
-                    @Override
-                    public void onPositiveClick() {
-                        final Intent intent = new Intent(LockPatternActivity.ACTION_CREATE_PATTERN, null,
-                                ViewTasksActivity.this, LockPatternActivity.class);
-                        startActivityForResult(intent, REQ_CREATE_PATTERN);
-                    }
-
-                    @Override
-                    public void onNegativeClick() {
-                        // do nothing
-                    }
-                });
-                dialog.show(getSupportFragmentManager(), "dialog");
+            public void onClick(final View view) {
+                if (((Button)view).getText() == getString(R.string.accept_task)) {
+                    acceptTaskClicked();
+                } else {
+                    saveTaskClicked();
+                }
             }
         });
         mIsMapShowing = true;
@@ -239,11 +229,6 @@ public class ViewTasksActivity extends AppCompatActivity
         return true;
     }
 
-    @Override
-    public void onAddTask(final String[] fields) {
-        onBackPressed();
-    }
-
     public void addTask(final View view) {
         mIsMapShowing = false;
         final AddTaskFragment addTaskFragment = (AddTaskFragment)
@@ -269,6 +254,16 @@ public class ViewTasksActivity extends AppCompatActivity
             }
         });
         animator.start();
+    }
+
+    public void checkSimilarTasks(final View view) {
+        View addTaskView = getSupportFragmentManager().findFragmentById(R.id.fragment_add_task)
+                .getView();
+        final String category = ((EditText)addTaskView.findViewById(R.id.edit_text_category))
+                .getText().toString();
+        CheckSimilarTasksFragment similarTasksFragment =
+                CheckSimilarTasksFragment.newInstance(category);
+        similarTasksFragment.show(getSupportFragmentManager(), "dialog");
     }
 
     public static long dollarsToCents(final double dollars) {
@@ -309,6 +304,29 @@ public class ViewTasksActivity extends AppCompatActivity
             }
         });
         animator.start();
+    }
+
+    private void acceptTaskClicked() {
+        BasicDialog dialog = BasicDialog.newInstance(getString(R.string.accept_task_question),
+                getString(R.string.accept_task_message), true);
+        dialog.setOnClickListener(new BasicDialog.OnBasicDialogClick() {
+            @Override
+            public void onPositiveClick() {
+                final Intent intent = new Intent(LockPatternActivity.ACTION_CREATE_PATTERN, null,
+                        ViewTasksActivity.this, LockPatternActivity.class);
+                startActivityForResult(intent, REQ_CREATE_PATTERN);
+            }
+
+            @Override
+            public void onNegativeClick() {
+                // do nothing
+            }
+        });
+        dialog.show(getSupportFragmentManager(), "dialog");
+    }
+
+    private void saveTaskClicked() {
+        // save task
     }
 
     private void changeTaskViewed(final Task task) {

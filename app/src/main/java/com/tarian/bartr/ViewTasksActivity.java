@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -36,12 +37,20 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 
-public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnTouchListener, BasicDialog.OnBasicDialogClick {
-    static SharedPreferences sSharedPreferences;
+import haibison.android.lockpattern.LockPatternActivity;
+
+public class ViewTasksActivity extends AppCompatActivity
+        implements OnMapReadyCallback, View.OnTouchListener, AddTaskFragment.OnAddTaskListener {
 
     static final String TASK_INFO = "taskInfo";
+    static final String PATTERN = "pattern";
+    private static final String MAP_SHOWING = "mapShowing";
 
-    private boolean mIsFirstClick, mIsInfoShowing;
+    static SharedPreferences sSharedPreferences;
+
+    private static final int REQ_CREATE_PATTERN = 1;
+
+    private boolean mIsFirstClick, mIsInfoShowing, mIsMapShowing;
     private int mYDelta;
     private Task mCurTask;
     private Marker mCurMarker;
@@ -53,23 +62,65 @@ public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_tasks);
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-        findViewById(R.id.button_accept_task_toolbar).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.button_action_toolbar).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
                 BasicDialog dialog = BasicDialog.newInstance(getString(R.string.accept_task_question),
-                        getString(R.string.accept_task_message));
+                        getString(R.string.accept_task_message), true);
+                dialog.setOnClickListener(new BasicDialog.OnBasicDialogClick() {
+                    @Override
+                    public void onPositiveClick() {
+                        final Intent intent = new Intent(LockPatternActivity.ACTION_CREATE_PATTERN, null,
+                                ViewTasksActivity.this, LockPatternActivity.class);
+                        startActivityForResult(intent, REQ_CREATE_PATTERN);
+                    }
+
+                    @Override
+                    public void onNegativeClick() {
+                        // do nothing
+                    }
+                });
                 dialog.show(getSupportFragmentManager(), "dialog");
             }
         });
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.fragment_google_map);
+        mIsMapShowing = true;
+        final SupportMapFragment mapFragment = (SupportMapFragment)
+                getSupportFragmentManager().findFragmentById(R.id.fragment_google_map);
         mapFragment.getMapAsync(this);
         findViewById(R.id.grid_layout_view_task_info).setVisibility(View.GONE);
         findViewById(R.id.grid_layout_view_task_info).setOnTouchListener(this);
+        if (savedInstanceState != null && !savedInstanceState.getBoolean(MAP_SHOWING, true)) {
+            addTask(null);
+        }
 
         mIsFirstClick = true;
         mIsInfoShowing = false;
         mTasks = new ArrayList<>();
+    }
+
+    @Override
+    public void onSaveInstanceState(final Bundle saveInstanceState) {
+        super.onSaveInstanceState(saveInstanceState);
+
+        saveInstanceState.putBoolean(MAP_SHOWING, mIsMapShowing);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQ_CREATE_PATTERN: {
+                if (resultCode == RESULT_OK) {
+                    final char[] pattern = data.getCharArrayExtra(LockPatternActivity.EXTRA_PATTERN);
+                    final Intent requestIntent =
+                            new Intent(ViewTasksActivity.this, RequestTaskActivity.class);
+                    requestIntent.putExtra(TASK_INFO, mCurTask.getFieldsWithId());
+                    requestIntent.putExtra(PATTERN, pattern);
+                    startActivity(requestIntent);
+                }
+
+                break;
+            }
+        }
     }
 
     @Override
@@ -86,7 +137,30 @@ public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCa
 
     @Override
     public void onBackPressed() {
-        if (mIsInfoShowing) {
+        if (!mIsMapShowing) {
+            mIsMapShowing = true;
+            final AddTaskFragment addTaskFragment = (AddTaskFragment)
+                    getSupportFragmentManager().findFragmentById(R.id.fragment_add_task);
+            final Animator animator = createFadeAnimator(addTaskFragment.getView(), 1, 0);
+            animator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                    findViewById(R.id.button_action_toolbar).setVisibility(View.GONE);
+                }
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    addTaskFragment.getView().setVisibility(View.GONE);
+                }
+                @Override
+                public void onAnimationCancel(Animator animation) {
+                }
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+                }
+            });
+            animator.start();
+        }else if (mIsInfoShowing) {
             removeInfoView(findViewById(R.id.grid_layout_view_task_info));
         } else {
             super.onBackPressed();
@@ -166,16 +240,35 @@ public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     @Override
-    public void onPositiveClick() {
-        // go to RequestTaskActivity
-        final Intent requestIntent = new Intent(this, RequestTaskActivity.class);
-        requestIntent.putExtra(TASK_INFO, mCurTask.getFieldsWithId());
-        startActivity(requestIntent);
+    public void onAddTask(final String[] fields) {
+        onBackPressed();
     }
 
-    @Override
-    public void onNegativeClick() {
-        // do nothing
+    public void addTask(final View view) {
+        mIsMapShowing = false;
+        final AddTaskFragment addTaskFragment = (AddTaskFragment)
+                getSupportFragmentManager().findFragmentById(R.id.fragment_add_task);
+        final Animator animator = createFadeAnimator(addTaskFragment.getView(), 0, 1);
+        animator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                addTaskFragment.getView().setVisibility(View.VISIBLE);
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                final Button actionButton = (Button) findViewById(R.id.button_action_toolbar);
+                actionButton.setText(getString(R.string.save));
+                actionButton.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void onAnimationEnd(Animator animation) {
+            }
+            @Override
+            public void onAnimationCancel(Animator animation) {
+            }
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+            }
+        });
+        animator.start();
     }
 
     public static long dollarsToCents(final double dollars) {
@@ -195,7 +288,7 @@ public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCa
                 mIsInfoShowing = false;
                 mIsFirstClick = true;
                 getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-                findViewById(R.id.button_accept_task_toolbar).setVisibility(View.GONE);
+                findViewById(R.id.button_action_toolbar).setVisibility(View.GONE);
             }
 
             @Override
@@ -219,14 +312,17 @@ public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     private void changeTaskViewed(final Task task) {
-        ((TextView)findViewById(R.id.text_view_item_needed))
-                .setText(task.mItem);
+        ((TextView)findViewById(R.id.text_view_item_needed)).setText(task.mItem);
         ((TextView)findViewById(R.id.text_view_max_price))
                 .setText(String.format("$%.2f", centsToDollars(task.mMaxPrice)));
         ((TextView)findViewById(R.id.text_view_bounty))
                 .setText(String.format("$%.2f", centsToDollars(task.mBounty)));
-        ((TextView)findViewById(R.id.text_view_notes))
-                .setText(task.mNotes);
+        if (task.mNotes.matches("")) {
+            findViewById(R.id.text_view_notes_label).setVisibility(View.GONE);
+            findViewById(R.id.text_view_notes).setVisibility(View.GONE);
+        } else {
+            ((TextView) findViewById(R.id.text_view_notes)).setText(task.mNotes);
+        }
     }
 
     private void createInitialBounceAnimation(final View infoView) {
@@ -245,7 +341,9 @@ public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCa
                 mIsInfoShowing = true;
                 infoView.setVisibility(View.VISIBLE);
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                findViewById(R.id.button_accept_task_toolbar).setVisibility(View.VISIBLE);
+                final Button actionButton = (Button) findViewById(R.id.button_action_toolbar);
+                actionButton.setText(getString(R.string.accept_task));
+                actionButton.setVisibility(View.VISIBLE);
             }
 
             @Override
@@ -283,8 +381,8 @@ public class ViewTasksActivity extends AppCompatActivity implements OnMapReadyCa
                 for (Map.Entry<String,?> entry : allKeys.entrySet()) {
                     if (entry.getValue().getClass() == String.class) {
                         final String[] fields = getStringArrayFromJSON(new JSONArray((String)entry.getValue()));
-                        final Task task = new Task(fields[0],
-                                Long.valueOf(fields[1]), Long.valueOf(fields[2]), fields[3], getLatLngFromString(fields[4]));
+                        final Task task = new Task(fields[0], Long.valueOf(fields[1]),
+                                Long.valueOf(fields[2]), fields[3], getLatLngFromString(fields[4]));
                         task.mId = UUID.fromString(entry.getKey());
                         final Marker marker = map.addMarker(new MarkerOptions()
                                 .position(task.mLocation)

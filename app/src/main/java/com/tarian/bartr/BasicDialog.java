@@ -22,17 +22,20 @@ public class BasicDialog extends DialogFragment {
     private OnBasicDialogClick mOnBasicDialogClick;
     private static final String DIALOG_TITLE = "dialogTitle";
     private static final String DIALOG_MESSAGE = "dialogMessage";
+    private static final String SHOW_NO_BUTTON = "showNoButton";
 
     /**
      * Creates a new dialog fragment
      * @param title Title of the dialog fragment
      * @param message Message of the dialog fragment
      */
-    public static BasicDialog newInstance(final String title, final String message) {
+    public static BasicDialog newInstance(final String title, final String message,
+                                          final boolean showNoButton) {
         final BasicDialog frag = new BasicDialog();
         final Bundle args = new Bundle();
         args.putString(DIALOG_TITLE, title);
         args.putString(DIALOG_MESSAGE, message);
+        args.putBoolean(SHOW_NO_BUTTON, showNoButton);
         frag.setArguments(args);
         return frag;
     }
@@ -42,23 +45,31 @@ public class BasicDialog extends DialogFragment {
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
         final String title = getArguments().getString(DIALOG_TITLE);
         final String message = getArguments().getString(DIALOG_MESSAGE);
+        final boolean showNoButton = getArguments().getBoolean(SHOW_NO_BUTTON);
+        final int okayText = (showNoButton) ? R.string.yes : R.string.ok;
 
-        return new AlertDialog.Builder(getActivity())
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                 .setTitle(title)
                 .setMessage(message)
-                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                .setPositiveButton(okayText, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mOnBasicDialogClick.onPositiveClick();
+                        if (mOnBasicDialogClick != null) {
+                            mOnBasicDialogClick.onPositiveClick();
+                        }
                     }
-                })
-                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                });
+        if (showNoButton) {
+            builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (mOnBasicDialogClick != null) {
                         mOnBasicDialogClick.onNegativeClick();
                     }
-                })
-                .create();
+                }
+            });
+        }
+        return builder.create();
     }
 
     @Override
@@ -66,14 +77,7 @@ public class BasicDialog extends DialogFragment {
         super.onStart();
     }
 
-    @Override
-    public void onAttach(final Activity activity) {
-        super.onAttach(activity);
-        try {
-            mOnBasicDialogClick = (OnBasicDialogClick)activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement OnSaveMemoreaDialog");
-        }
+    public void setOnClickListener(final OnBasicDialogClick listener) {
+        mOnBasicDialogClick = listener;
     }
-
 }

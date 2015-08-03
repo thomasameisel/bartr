@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,12 +25,16 @@ public class RequestTaskPictureFragment extends Fragment {
 
     private OnClickReceipt mOnClickReceiptListener;
     private String mPicturePath, mPrice;
+    private String[] mTaskInfo;
 
-    public static RequestTaskPictureFragment newInstance(final String picturePath, final String price) {
+    public static RequestTaskPictureFragment newInstance(final String picturePath,
+                                                         final String price,
+                                                         final String[] taskInfo) {
         RequestTaskPictureFragment fragment = new RequestTaskPictureFragment();
         Bundle args = new Bundle();
         args.putString(RequestTaskActivity.PICTURE_PATH, picturePath);
         args.putString(RequestTaskActivity.PRICE, price);
+        args.putStringArray(ViewTasksActivity.TASK_INFO, taskInfo);
         fragment.setArguments(args);
         return fragment;
     }
@@ -44,6 +49,7 @@ public class RequestTaskPictureFragment extends Fragment {
         if (getArguments() != null) {
             mPicturePath = getArguments().getString(RequestTaskActivity.PICTURE_PATH);
             mPrice = getArguments().getString(RequestTaskActivity.PRICE);
+            mTaskInfo = getArguments().getStringArray(ViewTasksActivity.TASK_INFO);
         }
     }
 
@@ -66,6 +72,7 @@ public class RequestTaskPictureFragment extends Fragment {
         if (mPrice != null) {
             ((EditText)view.findViewById(R.id.edit_text_price)).setText(mPrice);
         }
+        RequestTaskActivity.setFields(view, mTaskInfo);
         return view;
     }
 

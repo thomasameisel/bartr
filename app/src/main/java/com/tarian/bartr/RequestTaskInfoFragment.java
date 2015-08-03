@@ -24,20 +24,8 @@ public class RequestTaskInfoFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_request_task, container, false);
-        setFields(view, getArguments().getStringArray(ViewTasksActivity.TASK_INFO));
+        RequestTaskActivity.setFields(view,
+                getArguments().getStringArray(ViewTasksActivity.TASK_INFO));
         return view;
-    }
-
-    private void setFields(final View view, final String[] taskInfo) {
-        ((TextView)view.findViewById(R.id.text_view_item_needed))
-                .setText(taskInfo[1]);
-        ((TextView)view.findViewById(R.id.text_view_max_price))
-                .setText(String.format("$%.2f",
-                        ViewTasksActivity.centsToDollars(Long.parseLong(taskInfo[2]))));
-        ((TextView)view.findViewById(R.id.text_view_bounty))
-                .setText(String.format("$%.2f",
-                        ViewTasksActivity.centsToDollars(Long.parseLong(taskInfo[3]))));
-        ((TextView)view.findViewById(R.id.text_view_notes))
-                .setText(taskInfo[4]);
     }
 }

@@ -16,5 +16,15 @@
     <string name="drop_off">Drop Off</string>
     <string name="send_receipt">Send Receipt</string>
     <string name="cancel_task_question">Are you sure you want to cancel this task?</string>
-    <string name="price">Price:&#160;$</string>
+    <string name="price_dollar_label">Price:&#160;$</string>
+    <string name="price_label">Price:&#160;</string>
+    <string name="total_label">Total:&#160;</string>
+    <string name="title_activity_confirm">ConfirmActivity</string>
+    <string name="confirm_with_other">Confirm with other person</string>
+    <string name="must_enter_price">Enter the price of the item you purchased (including tax).</string>
+    <string name="ok">OK</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="save">Save</string>
 </resources>

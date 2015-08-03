@@ -38,6 +38,13 @@
             android:name=".RequestTaskActivity"
             android:label="@string/title_activity_request_task" >
         </activity>
+        <activity
+            android:name=".ConfirmActivity"
+            android:label="@string/title_activity_confirm" >
+        </activity>
+        <activity
+            android:name="haibison.android.lockpattern.LockPatternActivity"
+            android:theme="@style/Alp_42447968.Theme.Dialog.Light" />
     </application>
 
 </manifest>

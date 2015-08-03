@@ -1,41 +1,52 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:fillViewport="true"
     tools:context="com.tarian.bartr.RequestTaskPictureFragment"
     android:background="@color/background_material_light">
 
-    <TextView
-        android:id="@+id/text_view_price"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginBottom="10dp"
-        android:text="@string/price"
-        android:textColor="@color/secondary_text_default_material_light"
-        android:textSize="26sp"/>
-    <EditText
-        android:id="@+id/edit_text_price"
+    <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_alignBaseline="@id/text_view_price"
-        android:layout_toRightOf="@id/text_view_price"
-        android:layout_toEndOf="@id/text_view_price"
-        android:inputType="numberDecimal"
-        android:textColor="@color/primary_text_default_material_light"
-        android:textSize="26sp"/>
-    <ImageButton
-        android:id="@+id/image_view_receipt"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_below="@+id/text_view_price"
-        android:scaleType="fitCenter"
-        android:background="@null"/>
-</RelativeLayout>
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:id="@+id/linear_layout_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:id="@+id/text_view_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/price_dollar_label"
+                android:textColor="@color/secondary_text_default_material_light"
+                android:textSize="26sp"/>
+            <EditText
+                android:id="@+id/edit_text_price"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:textColor="@color/primary_text_default_material_light"
+                android:textSize="26sp"/>
+        </LinearLayout>
+        <ImageButton
+            android:id="@+id/image_view_receipt"
+            android:layout_width="fill_parent"
+            android:layout_height="400dp"
+            android:layout_marginLeft="50dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginRight="50dp"
+            android:layout_marginEnd="50dp"
+            android:layout_below="@+id/linear_layout_price"
+            android:scaleType="fitCenter"/>
+        <include
+            layout="@layout/view_task_info"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_below="@id/image_view_receipt"/>
+    </RelativeLayout>
+</ScrollView>

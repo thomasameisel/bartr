@@ -24,7 +24,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
-public class RequestTaskActivity extends AppCompatActivity implements BasicDialog.OnBasicDialogClick, RequestTaskPictureFragment.OnClickReceipt {
+public class RequestTaskActivity extends AppCompatActivity
+        implements RequestTaskPictureFragment.OnClickReceipt {
     static final String PICTURE_PATH = "picturePath";
     static final String PRICE = "price";
 
@@ -44,7 +45,8 @@ public class RequestTaskActivity extends AppCompatActivity implements BasicDialo
             });
             RequestTaskInfoFragment requestTaskFragment = new RequestTaskInfoFragment();
             requestTaskFragment.setArguments(getIntent().getExtras());
-            final FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            final FragmentTransaction fragmentTransaction =
+                    getSupportFragmentManager().beginTransaction();
             fragmentTransaction.add(R.id.frame_layout_request_task,
                     requestTaskFragment, "fragment_request_task_info");
             fragmentTransaction.commit();
@@ -68,7 +70,18 @@ public class RequestTaskActivity extends AppCompatActivity implements BasicDialo
 
     @Override
     public void onBackPressed() {
-        BasicDialog dialog = BasicDialog.newInstance(getString(R.string.cancel_task_question), null);
+        BasicDialog dialog = BasicDialog.newInstance(getString(R.string.cancel_task_question),
+                null, true);
+        dialog.setOnClickListener(new BasicDialog.OnBasicDialogClick() {
+            @Override
+            public void onPositiveClick() {
+                RequestTaskActivity.this.finish();
+            }
+            @Override
+            public void onNegativeClick() {
+                // do nothing
+            }
+        });
         dialog.show(getSupportFragmentManager(), "dialog");
     }
 
@@ -81,16 +94,6 @@ public class RequestTaskActivity extends AppCompatActivity implements BasicDialo
         if (priceEditText != null) {
             savedInstanceState.putString(PRICE, priceEditText.getText().toString());
         }
-    }
-
-    @Override
-    public void onPositiveClick() {
-        finish();
-    }
-
-    @Override
-    public void onNegativeClick() {
-        // do nothing
     }
 
     public void openCamera() {
@@ -127,17 +130,49 @@ public class RequestTaskActivity extends AppCompatActivity implements BasicDialo
         }
     }
 
+    public static void setFields(final View view, final String[] taskInfo) {
+        ((TextView)view.findViewById(R.id.text_view_item_needed)).setText(taskInfo[1]);
+        ((TextView)view.findViewById(R.id.text_view_max_price))
+                .setText(String.format("$%.2f",
+                        ViewTasksActivity.centsToDollars(Long.parseLong(taskInfo[2]))));
+        ((TextView)view.findViewById(R.id.text_view_bounty))
+                .setText(String.format("$%.2f",
+                        ViewTasksActivity.centsToDollars(Long.parseLong(taskInfo[3]))));
+        if (taskInfo[4].matches("")) {
+            view.findViewById(R.id.text_view_notes_label).setVisibility(View.GONE);
+            view.findViewById(R.id.text_view_notes).setVisibility(View.GONE);
+        } else {
+            ((TextView) view.findViewById(R.id.text_view_notes)).setText(taskInfo[4]);
+        }
+    }
+
     private void startPictureFragment(final String picturePath, final String price) {
         ((TextView)findViewById(R.id.button_toolbar)).setText(getString(R.string.drop_off));
         findViewById(R.id.button_toolbar).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                // drop off
+                final EditText priceEditText = ((EditText)findViewById(R.id.edit_text_price));
+                if (priceEditText.getText().toString().matches("")) {
+                    BasicDialog dialog =
+                            BasicDialog.newInstance(getString(R.string.must_enter_price), null, false);
+                    dialog.show(getSupportFragmentManager(), "dialog");
+                } else {
+                    final Intent confirmIntent = new Intent(RequestTaskActivity.this,
+                            ConfirmActivity.class);
+                    confirmIntent.putExtra(ViewTasksActivity.TASK_INFO,
+                            getIntent().getExtras().getStringArray(ViewTasksActivity.TASK_INFO));
+                    confirmIntent.putExtra(ViewTasksActivity.PATTERN,
+                            getIntent().getExtras().getCharArray(ViewTasksActivity.PATTERN));
+                    confirmIntent.putExtra(PRICE, priceEditText.getText().toString());
+                    startActivity(confirmIntent);
+                }
             }
         });
         final RequestTaskPictureFragment requestTaskFragment =
-                RequestTaskPictureFragment.newInstance(picturePath, price);
-        final FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                RequestTaskPictureFragment.newInstance(picturePath,
+                        price, getIntent().getStringArrayExtra(ViewTasksActivity.TASK_INFO));
+        final FragmentTransaction fragmentTransaction =
+                getSupportFragmentManager().beginTransaction();
         fragmentTransaction.add(R.id.frame_layout_request_task,
                 requestTaskFragment, "fragment_request_task_picture");
         fragmentTransaction.commit();

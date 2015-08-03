@@ -59,7 +59,7 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_compat_margin"
         android:src="@drawable/ic_add"
-        android:onClick="addTask"
+        android:onClick="showAddTask"
         app:borderWidth="0dp"
         app:fabSize="normal"
         app:layout_anchorGravity="bottom|right|end"/>

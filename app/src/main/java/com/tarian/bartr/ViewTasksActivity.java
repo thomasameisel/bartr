@@ -56,6 +56,7 @@ public class ViewTasksActivity extends AppCompatActivity
     private Task mCurTask;
     private Marker mCurMarker;
     private ArrayList<Pair<Marker, Task>> mTasks;
+    private GoogleMap mMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +81,7 @@ public class ViewTasksActivity extends AppCompatActivity
         findViewById(R.id.grid_layout_view_task_info).setVisibility(View.GONE);
         findViewById(R.id.grid_layout_view_task_info).setOnTouchListener(this);
         if (savedInstanceState != null && !savedInstanceState.getBoolean(MAP_SHOWING, true)) {
-            addTask(null);
+            showAddTask(null);
         }
 
         mIsFirstClick = true;
@@ -159,6 +160,7 @@ public class ViewTasksActivity extends AppCompatActivity
 
     @Override
     public void onMapReady(final GoogleMap map) {
+        mMap = map;
         final LocationManager locationManager = (LocationManager)this.getSystemService(LOCATION_SERVICE);
         final Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         final LatLng curLatLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -229,7 +231,7 @@ public class ViewTasksActivity extends AppCompatActivity
         return true;
     }
 
-    public void addTask(final View view) {
+    public void showAddTask(final View view) {
         mIsMapShowing = false;
         final AddTaskFragment addTaskFragment = (AddTaskFragment)
                 getSupportFragmentManager().findFragmentById(R.id.fragment_add_task);
@@ -327,6 +329,30 @@ public class ViewTasksActivity extends AppCompatActivity
 
     private void saveTaskClicked() {
         // save task
+        AddTaskFragment addTaskFragment = (AddTaskFragment)
+                getSupportFragmentManager().findFragmentById(R.id.fragment_add_task);
+        if (addTaskFragment.allFieldsSet()) {
+            // create task
+            final LocationManager locationManager = (LocationManager)this.getSystemService(LOCATION_SERVICE);
+            final Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            final LatLng curLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+            final String[] taskFields = addTaskFragment.getFields();
+            final Task newTask = new Task(taskFields[0], dollarsToCents(Double.parseDouble(taskFields[2])),
+                    dollarsToCents(Double.parseDouble(taskFields[3])), taskFields[4], curLatLng);
+            newTask.generateNewUUID();
+            sSharedPreferences.edit().putString(newTask.mId.toString(),
+                    getJSONStringFromArray(newTask.getFields()).toString()).apply();
+            final Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(newTask.mLocation)
+                    .title(newTask.mItem)
+                    .snippet(String.format("$%.2f", centsToDollars(newTask.mBounty))));
+            mTasks.add(new Pair<>(marker, newTask));
+            onBackPressed();
+        } else {
+            BasicDialog dialog =
+                    BasicDialog.newInstance(getString(R.string.enter_all_fields), null, false);
+            dialog.show(getSupportFragmentManager(), null);
+        }
     }
 
     private void changeTaskViewed(final Task task) {
@@ -417,10 +443,8 @@ public class ViewTasksActivity extends AppCompatActivity
 
     private LatLng getLatLngFromString(String location) {
         final String[] latlong =  location.split(",");
-        //double latitude = Double.parseDouble(latlong[0]);
-        final double latitude = 43.102379109211185;
-        //final double longitude = Double.parseDouble(latlong[1]);
-        final double longitude = -89.37296024417279;
+        double latitude = Double.parseDouble(latlong[0]);
+        final double longitude = Double.parseDouble(latlong[1]);
         return new LatLng(latitude, longitude);
     }
 

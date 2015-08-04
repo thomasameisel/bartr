@@ -5,7 +5,7 @@
     android:layout_height="fill_parent"
     android:padding="10dp"
     android:columnCount="2"
-    android:background="@color/background_material_light">
+    android:background="@null">
 
     <TextView
         android:id="@+id/text_view_item_needed_label"

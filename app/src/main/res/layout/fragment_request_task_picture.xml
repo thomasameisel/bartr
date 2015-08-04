@@ -4,11 +4,12 @@
     android:layout_height="fill_parent"
     android:fillViewport="true"
     tools:context="com.tarian.bartr.RequestTaskPictureFragment"
-    android:background="@color/background_material_light">
+    android:background="@null">
 
     <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@null">
 
         <LinearLayout
             android:id="@+id/linear_layout_price"
@@ -47,6 +48,7 @@
             layout="@layout/view_task_info"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_below="@id/image_view_receipt"/>
+            android:layout_below="@id/image_view_receipt"
+            android:background="@null"/>
     </RelativeLayout>
 </ScrollView>

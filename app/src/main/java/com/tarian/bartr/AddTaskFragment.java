@@ -51,4 +51,11 @@ public class AddTaskFragment extends Fragment {
         }
         return stringFields;
     }
+
+    public void clearFields() {
+        for (EditText field : fields) {
+            field.setText(null);
+        }
+        fields[0].requestFocus();
+    }
 }

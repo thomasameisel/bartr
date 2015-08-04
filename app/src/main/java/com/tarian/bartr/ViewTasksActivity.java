@@ -4,12 +4,15 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Pair;
@@ -17,7 +20,9 @@ import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.animation.BounceInterpolator;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -45,11 +50,12 @@ public class ViewTasksActivity extends AppCompatActivity
 
     static final String TASK_INFO = "taskInfo";
     static final String PATTERN = "pattern";
-    private static final String MAP_SHOWING = "mapShowing";
 
     static SharedPreferences sSharedPreferences;
 
     private static final int REQ_CREATE_PATTERN = 1;
+    private static final String FRAGMENT_ADD_TASK = "fragment_add_task";
+    private static final String MAP_SHOWING = "mapShowing";
 
     private boolean mIsFirstClick, mIsInfoShowing, mIsMapShowing;
     private int mYDelta;
@@ -62,6 +68,7 @@ public class ViewTasksActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         sSharedPreferences = getSharedPreferences(getString(R.string.preference_file_key), MODE_PRIVATE);
         super.onCreate(savedInstanceState);
+        getWindow().setBackgroundDrawable(null);
         setContentView(R.layout.activity_view_tasks);
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         findViewById(R.id.button_action_toolbar).setOnClickListener(new View.OnClickListener() {
@@ -78,10 +85,10 @@ public class ViewTasksActivity extends AppCompatActivity
         final SupportMapFragment mapFragment = (SupportMapFragment)
                 getSupportFragmentManager().findFragmentById(R.id.fragment_google_map);
         mapFragment.getMapAsync(this);
-        findViewById(R.id.grid_layout_view_task_info).setVisibility(View.GONE);
-        findViewById(R.id.grid_layout_view_task_info).setOnTouchListener(this);
+        findViewById(R.id.frame_layout_view_task_info).setVisibility(View.GONE);
+        findViewById(R.id.frame_layout_view_task_info).setOnTouchListener(this);
         if (savedInstanceState != null && !savedInstanceState.getBoolean(MAP_SHOWING, true)) {
-            showAddTask(null);
+            setToolbarAddTask();
         }
 
         mIsFirstClick = true;
@@ -130,29 +137,11 @@ public class ViewTasksActivity extends AppCompatActivity
     public void onBackPressed() {
         if (!mIsMapShowing) {
             mIsMapShowing = true;
-            final AddTaskFragment addTaskFragment = (AddTaskFragment)
-                    getSupportFragmentManager().findFragmentById(R.id.fragment_add_task);
-            final Animator animator = createFadeAnimator(addTaskFragment.getView(), 1, 0);
-            animator.addListener(new Animator.AnimatorListener() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-                    findViewById(R.id.button_action_toolbar).setVisibility(View.GONE);
-                }
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    addTaskFragment.getView().setVisibility(View.GONE);
-                }
-                @Override
-                public void onAnimationCancel(Animator animation) {
-                }
-                @Override
-                public void onAnimationRepeat(Animator animation) {
-                }
-            });
-            animator.start();
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            findViewById(R.id.button_action_toolbar).setVisibility(View.GONE);
+            super.onBackPressed();
         }else if (mIsInfoShowing) {
-            removeInfoView(findViewById(R.id.grid_layout_view_task_info));
+            removeInfoView(findViewById(R.id.frame_layout_view_task_info));
         } else {
             super.onBackPressed();
         }
@@ -170,7 +159,7 @@ public class ViewTasksActivity extends AppCompatActivity
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(curLatLng, 12));
 
         initializeTasksFromSharedPref(map, sSharedPreferences.getAll());
-        final View infoView = findViewById(R.id.grid_layout_view_task_info);
+        final View infoView = findViewById(R.id.frame_layout_view_task_info);
         map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(final Marker marker) {
@@ -233,33 +222,19 @@ public class ViewTasksActivity extends AppCompatActivity
 
     public void showAddTask(final View view) {
         mIsMapShowing = false;
-        final AddTaskFragment addTaskFragment = (AddTaskFragment)
-                getSupportFragmentManager().findFragmentById(R.id.fragment_add_task);
-        final Animator animator = createFadeAnimator(addTaskFragment.getView(), 0, 1);
-        animator.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animation) {
-                addTaskFragment.getView().setVisibility(View.VISIBLE);
-                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                final Button actionButton = (Button) findViewById(R.id.button_action_toolbar);
-                actionButton.setText(getString(R.string.save));
-                actionButton.setVisibility(View.VISIBLE);
-            }
-            @Override
-            public void onAnimationEnd(Animator animation) {
-            }
-            @Override
-            public void onAnimationCancel(Animator animation) {
-            }
-            @Override
-            public void onAnimationRepeat(Animator animation) {
-            }
-        });
-        animator.start();
+        setToolbarAddTask();
+        final AddTaskFragment addTaskFragment = new AddTaskFragment();
+        final FragmentTransaction fragmentTransaction = getSupportFragmentManager()
+                .beginTransaction();
+        fragmentTransaction.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out,
+                android.R.anim.fade_in, android.R.anim.fade_out);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.add(R.id.frame_layout_add_task, addTaskFragment, FRAGMENT_ADD_TASK);
+        fragmentTransaction.commit();
     }
 
     public void checkSimilarTasks(final View view) {
-        View addTaskView = getSupportFragmentManager().findFragmentById(R.id.fragment_add_task)
+        View addTaskView = getSupportFragmentManager().findFragmentByTag(FRAGMENT_ADD_TASK)
                 .getView();
         final String category = ((EditText)addTaskView.findViewById(R.id.edit_text_category))
                 .getText().toString();
@@ -274,6 +249,12 @@ public class ViewTasksActivity extends AppCompatActivity
 
     public static double centsToDollars(final long cents) {
         return (double) cents / 100;
+    }
+
+    private void setToolbarAddTask() {
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        findViewById(R.id.button_action_toolbar).setVisibility(View.VISIBLE);
+        ((Button)findViewById(R.id.button_action_toolbar)).setText(getString(R.string.save));
     }
 
     private void removeInfoView(final View infoView) {
@@ -330,7 +311,7 @@ public class ViewTasksActivity extends AppCompatActivity
     private void saveTaskClicked() {
         // save task
         AddTaskFragment addTaskFragment = (AddTaskFragment)
-                getSupportFragmentManager().findFragmentById(R.id.fragment_add_task);
+                getSupportFragmentManager().findFragmentByTag(FRAGMENT_ADD_TASK);
         if (addTaskFragment.allFieldsSet()) {
             // create task
             final LocationManager locationManager = (LocationManager)this.getSystemService(LOCATION_SERVICE);
@@ -347,6 +328,7 @@ public class ViewTasksActivity extends AppCompatActivity
                     .title(newTask.mItem)
                     .snippet(String.format("$%.2f", centsToDollars(newTask.mBounty))));
             mTasks.add(new Pair<>(marker, newTask));
+            addTaskFragment.clearFields();
             onBackPressed();
         } else {
             BasicDialog dialog =

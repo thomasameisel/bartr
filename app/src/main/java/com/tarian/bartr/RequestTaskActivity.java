@@ -35,6 +35,7 @@ public class RequestTaskActivity extends AppCompatActivity
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_request_task);
+        getWindow().setBackgroundDrawable(null);
         if (savedInstanceState == null || savedInstanceState.getString(PICTURE_PATH) == null) {
             ((TextView)findViewById(R.id.button_toolbar)).setText(getString(R.string.send_receipt));
             findViewById(R.id.button_toolbar).setOnClickListener(new View.OnClickListener() {
@@ -173,7 +174,7 @@ public class RequestTaskActivity extends AppCompatActivity
                         price, getIntent().getStringArrayExtra(ViewTasksActivity.TASK_INFO));
         final FragmentTransaction fragmentTransaction =
                 getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.add(R.id.frame_layout_request_task,
+        fragmentTransaction.replace(R.id.frame_layout_request_task,
                 requestTaskFragment, "fragment_request_task_picture");
         fragmentTransaction.commit();
     }

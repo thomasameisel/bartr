@@ -47,7 +47,7 @@ public class Task {
         return fields;
     }
 
-    private String latLngToString(final LatLng location) {
+    public String latLngToString(final LatLng location) {
         final String locationString =
                 Double.toString(location.latitude) +
                 "," +

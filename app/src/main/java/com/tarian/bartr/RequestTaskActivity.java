@@ -15,6 +15,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.albinmathew.transitions.ActivityTransition;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -35,7 +37,8 @@ public class RequestTaskActivity extends AppCompatActivity
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_request_task);
-        getWindow().setBackgroundDrawable(null);
+        ActivityTransition.with(getIntent())
+                .to(findViewById(R.id.frame_layout_request_task)).start(savedInstanceState);
         if (savedInstanceState == null || savedInstanceState.getString(PICTURE_PATH) == null) {
             ((TextView)findViewById(R.id.button_toolbar)).setText(getString(R.string.send_receipt));
             findViewById(R.id.button_toolbar).setOnClickListener(new View.OnClickListener() {
@@ -170,8 +173,8 @@ public class RequestTaskActivity extends AppCompatActivity
             }
         });
         final RequestTaskPictureFragment requestTaskFragment =
-                RequestTaskPictureFragment.newInstance(picturePath,
-                        price, getIntent().getStringArrayExtra(ViewTasksActivity.TASK_INFO));
+                RequestTaskPictureFragment.newInstance(picturePath, price,
+                        getIntent().getStringArrayExtra(ViewTasksActivity.TASK_INFO));
         final FragmentTransaction fragmentTransaction =
                 getSupportFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.frame_layout_request_task,

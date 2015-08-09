@@ -1,14 +1,13 @@
-package com.tarian.bartr;
+package com.tarian.bartr.view.dialog;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
-import android.view.View;
-import android.widget.Button;
+
+import com.tarian.bartr.R;
 
 /**
  * Popup dialog fragment for a basic dialog fragment with a mTitle, message, and OK button

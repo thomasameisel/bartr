@@ -1,41 +1,54 @@
-package com.tarian.bartr;
+package com.tarian.bartr.view.activity;
 
+import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-import java.util.List;
+import com.tarian.bartr.R;
+import com.tarian.bartr.view.fragment.AddTaskFragment;
+import com.tarian.bartr.view.fragment.ViewTasksMapFragment;
 
 import haibison.android.lockpattern.LockPatternActivity;
 
 public class ConfirmActivity extends AppCompatActivity {
+
+    private static final String PRICE = "price";
+    private static final String ID = "id";
+    private static final String FIELDS = "fields";
+    private static final String PATTERN = "pattern";
+
+    public static Intent getCallingIntent(Context context, String price, String id, String[] fields,
+                                          char[] pattern) {
+        final Intent intent = new Intent(context, ConfirmActivity.class);
+        intent.putExtra(PRICE, price);
+        intent.putExtra(ID, id);
+        intent.putExtra(FIELDS, fields);
+        intent.putExtra(PATTERN, pattern);
+        return intent;
+    }
+
     private static final int REQ_ENTER_PATTERN = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm);
-        final String[] taskInfo = getIntent().getStringArrayExtra(ViewTasksActivity.TASK_INFO);
+        final String[] taskInfo = getIntent().getStringArrayExtra(FIELDS);
 
-        final long bountyCents = Long.parseLong(taskInfo[3]);
-        final double bountyDollars = ViewTasksActivity.centsToDollars(bountyCents);
-        final String priceString = getIntent().getStringExtra(RequestTaskActivity.PRICE);
+        final long bountyCents = Long.parseLong(taskInfo[2]);
+        final double bountyDollars = ViewTasksMapFragment.centsToDollars(bountyCents);
+        final String priceString = getIntent().getStringExtra(PRICE);
         final double priceDollars = Double.parseDouble(priceString);
-        final long priceCents = ViewTasksActivity.dollarsToCents(priceDollars);
+        final long priceCents = AddTaskFragment.dollarsToCents(priceDollars);
 
         final long totalCents = bountyCents + priceCents;
-        final double totalDollars = ViewTasksActivity.centsToDollars(totalCents);
+        final double totalDollars = ViewTasksMapFragment.centsToDollars(totalCents);
 
         ((TextView)findViewById(R.id.text_view_confirm_item_needed))
-                .setText(taskInfo[1]);
+                .setText(taskInfo[0]);
         ((TextView)findViewById(R.id.text_view_confirm_price))
                 .setText(String.format("$%.2f", priceDollars));
         ((TextView)findViewById(R.id.text_view_confirm_bounty))
@@ -70,7 +83,7 @@ public class ConfirmActivity extends AppCompatActivity {
     }
 
     public void confirmPattern(final View view) {
-        char[] savedPattern = getIntent().getCharArrayExtra(ViewTasksActivity.PATTERN);
+        char[] savedPattern = getIntent().getCharArrayExtra(PATTERN);
         Intent intent = new Intent(LockPatternActivity.ACTION_COMPARE_PATTERN, null,
                 this, LockPatternActivity.class);
         intent.putExtra(LockPatternActivity.EXTRA_PATTERN, savedPattern);

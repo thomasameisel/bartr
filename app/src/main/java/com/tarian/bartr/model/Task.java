@@ -1,4 +1,4 @@
-package com.tarian.bartr;
+package com.tarian.bartr.model;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -8,12 +8,12 @@ import java.util.UUID;
  * Created by Tommy on 7/31/2015.
  */
 public class Task {
-    UUID mId;
-    String mItem;
-    long mMaxPrice;
-    long mBounty;
-    String mNotes;
-    LatLng mLocation;
+    public UUID mId;
+    public String mItem;
+    public long mMaxPrice;
+    public long mBounty;
+    public String mNotes;
+    public LatLng mLocation;
 
     public Task(final String item, final long price, final long bounty, final String notes, final LatLng location) {
         this.mItem = item;

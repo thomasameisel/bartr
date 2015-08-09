@@ -46,7 +46,7 @@
         </android.support.v7.widget.Toolbar>
     </android.support.design.widget.AppBarLayout>
     <FrameLayout
-        android:id="@+id/frame_layout_request_task"
+        android:id="@+id/frame_layout_fragment_container"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_marginTop="?attr/actionBarSize"/>

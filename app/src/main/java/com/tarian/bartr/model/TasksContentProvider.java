@@ -1,13 +1,11 @@
-package com.tarian.bartr;
+package com.tarian.bartr.model;
 
-import android.app.ActivityManager;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
-import android.util.Log;
 
 import java.io.IOException;
 
@@ -23,11 +21,11 @@ public class TasksContentProvider extends ContentProvider {
     }
 
     public static final Uri TASKS_URI = Uri.parse("content://" + AUTHORITY + "/" + "tasks");
-    private TasksDatabase mDb;
+    private com.tarian.bartr.model.TasksDatabase mDb;
 
     @Override
     public boolean onCreate() {
-        mDb = new TasksDatabase(getContext());
+        mDb = new com.tarian.bartr.model.TasksDatabase(getContext());
         try {
             mDb.createDataBase();
         } catch (IOException e) {
@@ -54,8 +52,7 @@ public class TasksContentProvider extends ContentProvider {
         long id;
         switch (sURIMatcher.match(uri)) {
             case TASKS:
-                id = sqlDB.insertOrThrow(TasksDatabase.TABLES.TASKS, null, values);
-                Log.d("insert", Long.toString(id));
+                id = sqlDB.insertOrThrow(com.tarian.bartr.model.TasksDatabase.TABLES.TASKS, null, values);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
@@ -85,6 +82,16 @@ public class TasksContentProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return 0;
+        SQLiteDatabase sqlDB = mDb.getWritableDatabase();
+        int count;
+        switch (sURIMatcher.match(uri)) {
+            case TASKS:
+                count = sqlDB.update(TasksDatabase.TABLES.TASKS, values, selection, selectionArgs);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown URI " + uri);
+        }
+        getContext().getContentResolver().notifyChange(uri, null);
+        return count;
     }
 }

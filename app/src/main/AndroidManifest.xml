@@ -25,13 +25,13 @@
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="@string/google_maps_key" />
         <provider
-            android:name="com.tarian.bartr.TasksContentProvider"
+            android:name="com.tarian.bartr.model.TasksContentProvider"
             android:authorities="com.tarian.bartr.provider"
             android:enabled="true">
         </provider>
 
         <activity
-            android:name=".ViewTasksActivity"
+            android:name=".view.activity.ViewTasksActivity"
             android:label="@string/app_name"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -41,11 +41,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".RequestTaskActivity"
+            android:name=".view.activity.RequestTaskActivity"
             android:label="@string/title_activity_request_task" >
         </activity>
         <activity
-            android:name=".ConfirmActivity"
+            android:name=".view.activity.ConfirmActivity"
             android:label="@string/title_activity_confirm" >
         </activity>
         <activity

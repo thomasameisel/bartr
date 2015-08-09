@@ -1,5 +1,5 @@
 
-package com.tarian.bartr;
+package com.tarian.bartr.model;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -9,8 +9,6 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.util.Log;
-
-import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,7 +22,7 @@ import java.io.OutputStream;
  */
 
 
-public class TasksDatabase extends SQLiteOpenHelper{
+public class TasksDatabase extends SQLiteOpenHelper {
 
     //The Android's default system path of your application database.
     private static String DB_PATH = "/data/data/com.tarian.bartr/databases/";

@@ -106,8 +106,6 @@ public class ViewTasksActivity extends NucleusAppCompatActivity<ViewTasksPresent
 
     @Override
     public void onBackPressed() {
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        findViewById(R.id.button_action_toolbar).setVisibility(View.GONE);
         if (mFragmentStack.peek() instanceof ViewTasksMapFragment) {
             ((ViewTasksMapFragment)mFragmentStack.peek()).onBackPressed();
         } else {
@@ -120,7 +118,6 @@ public class ViewTasksActivity extends NucleusAppCompatActivity<ViewTasksPresent
     }
 
     public void showAddTask(final View view) {
-        setToolbarAddTask();
         mFragmentStack.push(new AddTaskFragment());
     }
 
@@ -133,12 +130,6 @@ public class ViewTasksActivity extends NucleusAppCompatActivity<ViewTasksPresent
                     CheckSimilarTasksFragment.newInstance(category);
             similarTasksFragment.show(getSupportFragmentManager(), null);
         }
-    }
-
-    private void setToolbarAddTask() {
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        findViewById(R.id.button_action_toolbar).setVisibility(View.VISIBLE);
-        ((Button)findViewById(R.id.button_action_toolbar)).setText(getString(R.string.save));
     }
 
     private void acceptTaskClicked() {

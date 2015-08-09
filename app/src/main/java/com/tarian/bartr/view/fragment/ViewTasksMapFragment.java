@@ -10,6 +10,7 @@ import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Pair;
 import android.util.TypedValue;
 import android.view.InflateException;
@@ -81,6 +82,8 @@ public class ViewTasksMapFragment extends NucleusSupportFragment<ViewTasksPresen
         mIsInfoShowing = false;
         view.findViewById(R.id.card_view_task_info).setVisibility(View.GONE);
         view.findViewById(R.id.card_view_task_info).setOnTouchListener(this);
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getActivity().findViewById(R.id.button_action_toolbar).setVisibility(View.GONE);
     }
 
     @Override

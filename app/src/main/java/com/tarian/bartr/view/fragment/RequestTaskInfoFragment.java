@@ -3,9 +3,11 @@ package com.tarian.bartr.view.fragment;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import com.tarian.bartr.R;
 import com.tarian.bartr.presenter.RequestTaskPresenter;
@@ -48,6 +50,9 @@ public class RequestTaskInfoFragment extends NucleusSupportFragment<RequestTaskP
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         RequestTaskActivity.setFields(view, mFields);
+        getActivity().findViewById(R.id.button_action_toolbar).setVisibility(View.VISIBLE);
+        ((Button)getActivity().findViewById(R.id.button_action_toolbar))
+                .setText(getString(R.string.send_receipt));
     }
 
     @Override

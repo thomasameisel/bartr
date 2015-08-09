@@ -5,9 +5,11 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
@@ -49,9 +51,9 @@ public class RequestTaskPictureFragment extends NucleusSupportFragment<RequestTa
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState != null) {
-            mPicturePath = getArguments().getString(PICTURE_PATH);
-            mPrice = getArguments().getString(PRICE);
-            mFields = getArguments().getStringArray(FIELDS);
+            mPicturePath = savedInstanceState.getString(PICTURE_PATH);
+            mPrice = savedInstanceState.getString(PRICE);
+            mFields = savedInstanceState.getStringArray(FIELDS);
         }
     }
 
@@ -79,6 +81,9 @@ public class RequestTaskPictureFragment extends NucleusSupportFragment<RequestTa
             ((EditText)view.findViewById(R.id.edit_text_price)).setText(mPrice);
         }
         RequestTaskActivity.setFields(view, mFields);
+        getActivity().findViewById(R.id.button_action_toolbar).setVisibility(View.VISIBLE);
+        ((Button)getActivity().findViewById(R.id.button_action_toolbar))
+                .setText(getString(R.string.drop_off));
     }
 
     @Override

@@ -53,7 +53,7 @@ public class RequestTaskActivity extends NucleusAppCompatActivity<RequestTaskPre
         setContentView(R.layout.activity_request_task);
         ActivityTransition.with(getIntent())
                 .to(findViewById(R.id.frame_layout_fragment_container)).start(savedInstanceState);
-        findViewById(R.id.button_toolbar).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.button_action_toolbar).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (((Button)view).getText().toString().matches(getString(R.string.send_receipt))) {
@@ -85,7 +85,6 @@ public class RequestTaskActivity extends NucleusAppCompatActivity<RequestTaskPre
         super.onActivityResult(requestCode, resultCode, data);
 
         if (data != null && mFragmentStack.peek() instanceof RequestTaskInfoFragment) {
-            ((Button)findViewById(R.id.button_toolbar)).setText(getString(R.string.drop_off));
             final Bitmap receiptPicture = (Bitmap) data.getExtras().get("data");
             String picturePath = getPresenter().saveToInternalStorage(this, receiptPicture);
             RequestTaskPictureFragment pictureFragment = new RequestTaskPictureFragment(picturePath,

@@ -5,10 +5,12 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -49,6 +51,10 @@ public class AddTaskFragment extends NucleusSupportFragment<ViewTasksPresenter> 
         fields[2] = (EditText)view.findViewById(R.id.edit_text_max_price);
         fields[3] = (EditText)view.findViewById(R.id.edit_text_bounty);
         fields[4] = (EditText)view.findViewById(R.id.edit_text_notes);
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getActivity().findViewById(R.id.button_action_toolbar).setVisibility(View.VISIBLE);
+        ((Button)getActivity().findViewById(R.id.button_action_toolbar))
+                .setText(getString(R.string.save));
     }
 
     public boolean allFieldsSet() {
